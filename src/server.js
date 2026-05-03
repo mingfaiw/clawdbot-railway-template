@@ -298,19 +298,19 @@ function requireSetupAuth(req, res, next) {
 const app = express();
 
 // Block if Railway environment variable LOCK_DOWN is set to true
-const LOCK_DOWN = process.env.LOCK_DOWN === "true";
 app.use((req, res, next) => {
-  if (!LOCK_DOWN) return next();
+  if (process.env.LOCK_DOWN !== "true") return next();
 
-  // Allow only webhook + health
   if (
-    req.path.startsWith("/hooks") ||
-    req.path === "/healthz"
+    req.path === "/setup" ||
+    req.path.startsWith("/setup/") ||
+    req.path === "/openclaw" ||
+    req.path.startsWith("/openclaw/")
   ) {
-    return next();
+    return res.status(403).send("Forbidden");
   }
 
-  return res.status(403).send("Forbidden");
+  next();
 });
 
 app.disable("x-powered-by");
