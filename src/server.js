@@ -310,7 +310,7 @@ app.use((req, res, next) => {
     return res.status(403).send("Forbidden");
   }
 
-  next();
+  return next();
 });
 
 app.disable("x-powered-by");
