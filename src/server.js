@@ -296,6 +296,10 @@ function requireSetupAuth(req, res, next) {
 }
 
 const app = express();
+
+const ENABLE_SETUP_UI = process.env.ENABLE_SETUP_UI === "true";
+const ENABLE_CONTROL_UI = process.env.ENABLE_CONTROL_UI === "true";
+
 app.disable("x-powered-by");
 app.use(express.json({ limit: "1mb" }));
 
@@ -355,6 +359,11 @@ app.get("/healthz", async (_req, res) => {
 });
 
 app.get("/setup/app.js", requireSetupAuth, (_req, res) => {
+  // Block setup UI if disabled
+  if (!ENABLE_SETUP_UI) {
+    return res.status(404).send("Not found");
+  }
+
   // Serve JS for /setup (kept external to avoid inline encoding/template issues)
   res.type("application/javascript");
   res.send(fs.readFileSync(path.join(process.cwd(), "src", "setup-app.js"), "utf8"));
@@ -1366,6 +1375,11 @@ proxy.on("proxyReqWs", (_proxyReq, req) => {
 });
 
 app.use(requireDashboardAuth, async (req, res) => {
+  // Don't allow access if flag is set to off
+  if (!ENABLE_CONTROL_UI) {
+    return res.status(404).send("Not found");
+  }
+
   // If not configured, force users to /setup for any non-setup routes.
   if (!isConfigured() && !req.path.startsWith("/setup")) {
     return res.redirect("/setup");
