@@ -301,12 +301,13 @@ const app = express();
 app.use((req, res, next) => {
   if (process.env.LOCK_DOWN !== "true") return next();
 
-  if (
-    req.path === "/setup" ||
-    req.path.startsWith("/setup/") ||
-    req.path === "/openclaw" ||
-    req.path.startsWith("/openclaw/")
-  ) {
+  const isSetupRoute = req.path === "/setup" || req.path.startsWith("/setup/");
+  // Keep webhook paths reachable so channel integrations (e.g. Telegram) continue working.
+  const isWebhookRoute = req.path.startsWith("/hooks") || req.path.startsWith("/openclaw/hooks");
+  const isOpenClawUiRoute =
+    (req.path === "/openclaw" || req.path.startsWith("/openclaw/")) && !isWebhookRoute;
+
+  if (isSetupRoute || isOpenClawUiRoute) {
     return res.status(403).send("Forbidden");
   }
 
