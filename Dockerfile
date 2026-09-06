@@ -74,9 +74,11 @@ RUN npm install --omit=dev && npm cache clean --force
 RUN npm install -g openclaw@latest
 
 # Provide an openclaw executable
-RUN printf '%s\n' '#!/usr/bin/env bash' 'exec node /openclaw/dist/entry.js "$@"' > /usr/local/bin/openclaw \
-  && chmod +x /usr/local/bin/openclaw
-
+#RUN printf '%s\n' '#!/usr/bin/env bash' 'exec node /openclaw/dist/entry.js "$@"' > /usr/local/bin/openclaw \
+#  && chmod +x /usr/local/bin/openclaw
+RUN ln -sf $(which openclaw || echo "/data/npm/bin/openclaw") /usr/local/bin/openclaw \
+    && chmod +x /usr/local/bin/openclaw
+    
 COPY src ./src
 
 # The wrapper listens on $PORT.
