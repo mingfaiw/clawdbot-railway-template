@@ -75,9 +75,24 @@ const INTERNAL_GATEWAY_PORT = Number.parseInt(process.env.INTERNAL_GATEWAY_PORT 
 const INTERNAL_GATEWAY_HOST = process.env.INTERNAL_GATEWAY_HOST ?? "127.0.0.1";
 const GATEWAY_TARGET = `http://${INTERNAL_GATEWAY_HOST}:${INTERNAL_GATEWAY_PORT}`;
 
-// Always run the built-from-source CLI entry directly to avoid PATH/global-install mismatches.
-// const OPENCLAW_ENTRY = process.env.OPENCLAW_ENTRY?.trim() || "/openclaw/dist/entry.js";
-const OPENCLAW_ENTRY = process.env.OPENCLAW_ENTRY?.trim() || "/data/npm/bin/openclaw";
+function resolveOpenClawEntry() {
+  if (process.env.OPENCLAW_ENTRY?.trim()) return process.env.OPENCLAW_ENTRY.trim();
+  for (const candidate of [
+    "/usr/local/bin/openclaw",
+    "/usr/local/lib/node_modules/openclaw/openclaw.mjs",
+    "/data/npm/bin/openclaw",
+    "/data/npm/lib/node_modules/openclaw/openclaw.mjs",
+  ]) {
+    try {
+      if (fs.existsSync(candidate)) return candidate;
+    } catch {
+      // ignore
+    }
+  }
+  return "/usr/local/bin/openclaw";
+}
+
+const OPENCLAW_ENTRY = resolveOpenClawEntry();
 const OPENCLAW_NODE = process.env.OPENCLAW_NODE?.trim() || "node";
 
 function clawArgs(args) {

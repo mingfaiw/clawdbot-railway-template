@@ -54,6 +54,14 @@ RUN apt-get update \
 # `openclaw update` expects pnpm. Provide it in the runtime image.
 RUN corepack enable && corepack prepare pnpm@10.23.0 --activate
 
+# Pin OpenClaw to 2026.9.2 (compatible with Node 22) in the system layer (/usr/local)
+# BEFORE setting NPM_CONFIG_PREFIX=/data/npm so it is preserved across Railway volume mounts.
+RUN npm install -g openclaw@2026.9.2
+
+# Ensure /usr/local/bin/openclaw is available and executable
+RUN ln -sf $(which openclaw || echo "/usr/local/bin/openclaw") /usr/local/bin/openclaw \
+    && chmod +x /usr/local/bin/openclaw
+
 # Persist user-installed tools by default by targeting the Railway volume.
 # - npm global installs -> /data/npm
 # - pnpm global installs -> /data/pnpm (binaries) + /data/pnpm-store (store)
@@ -69,16 +77,6 @@ WORKDIR /app
 COPY package.json ./
 RUN npm install --omit=dev && npm cache clean --force
 
-# Copy built openclaw
-#COPY --from=openclaw-build /openclaw /openclaw
-RUN npm install -g openclaw@latest
-
-# Provide an openclaw executable
-#RUN printf '%s\n' '#!/usr/bin/env bash' 'exec node /openclaw/dist/entry.js "$@"' > /usr/local/bin/openclaw \
-#  && chmod +x /usr/local/bin/openclaw
-RUN ln -sf $(which openclaw || echo "/data/npm/bin/openclaw") /usr/local/bin/openclaw \
-    && chmod +x /usr/local/bin/openclaw
-    
 COPY src ./src
 
 # The wrapper listens on $PORT.
