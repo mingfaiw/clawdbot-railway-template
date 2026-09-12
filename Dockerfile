@@ -58,10 +58,6 @@ RUN corepack enable && corepack prepare pnpm@10.23.0 --activate
 # BEFORE setting NPM_CONFIG_PREFIX=/data/npm so it is preserved across Railway volume mounts.
 RUN npm install -g openclaw@2026.9.2
 
-# Ensure /usr/local/bin/openclaw is available and executable
-RUN ln -sf $(which openclaw || echo "/usr/local/bin/openclaw") /usr/local/bin/openclaw \
-    && chmod +x /usr/local/bin/openclaw
-
 # Persist user-installed tools by default by targeting the Railway volume.
 # - npm global installs -> /data/npm
 # - pnpm global installs -> /data/pnpm (binaries) + /data/pnpm-store (store)
